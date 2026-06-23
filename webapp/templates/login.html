@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Вход · Портал психологического тестирования ВС РК{% endblock %}
+{% block body %}
+<div class="login-screen">
+  <form class="login-card" method="post" action="/login">
+    <div class="login-card__head">
+      <svg width="52" height="58" viewBox="0 0 52 58" fill="none" style="display:block;margin:0 auto 14px">
+        <path d="M26 3L49 13V31C49 45 26 55 26 55C26 55 3 45 3 31V13L26 3Z" fill="rgba(201,162,39,0.12)" stroke="#C9A227" stroke-width="1.5"></path>
+        <circle cx="26" cy="30" r="9" fill="none" stroke="#C9A227" stroke-width="1.5"></circle>
+        <line x1="26" y1="18" x2="26" y2="21" stroke="#C9A227" stroke-width="1.5" stroke-linecap="round"></line>
+        <line x1="26" y1="39" x2="26" y2="42" stroke="#C9A227" stroke-width="1.5" stroke-linecap="round"></line>
+        <line x1="14" y1="30" x2="17" y2="30" stroke="#C9A227" stroke-width="1.5" stroke-linecap="round"></line>
+        <line x1="35" y1="30" x2="38" y2="30" stroke="#C9A227" stroke-width="1.5" stroke-linecap="round"></line>
+        <circle cx="26" cy="30" r="3.5" fill="#C9A227"></circle>
+      </svg>
+      <div class="login-card__brand">Вооружённые Силы РК</div>
+      <div class="login-card__brand-kz">ҚР Қарулы Күштері</div>
+      <div class="login-card__sub">Психологическая служба · Психологиялық қызмет</div>
+    </div>
+    <div class="login-card__body">
+      <div class="login-card__title">Войти в систему</div>
+      <div class="subtle" style="margin-bottom:24px">Жүйеге кіру</div>
+      {% if error %}<div class="login-error">{{ error }}</div>{% endif %}
+      <div class="field">
+        <label class="field__label" for="login">Логин</label>
+        <input class="input" type="text" id="login" name="login" value="{{ login or '' }}" autofocus required>
+      </div>
+      <div class="field" style="margin-bottom:24px">
+        <label class="field__label" for="password">Пароль · Құпиясөз</label>
+        <input class="input" type="password" id="password" name="password" required>
+      </div>
+      <button class="btn btn--primary btn--block" type="submit">ВОЙТИ / КІРУ</button>
+      <div style="display:flex;justify-content:center;gap:12px;margin-top:20px;align-items:center">
+        <span style="font-size:12px;font-family:var(--mono);font-weight:700;color:var(--navy);border-bottom:2px solid var(--navy);padding-bottom:1px">РУС</span>
+        <span style="font-size:12px;color:var(--border-2)">|</span>
+        <span style="font-size:12px;font-family:var(--mono);color:var(--muted-2)">ҚАЗ</span>
+      </div>
+    </div>
+    <div class="login-card__foot">
+      <div class="login-card__foot-text">Конфиденциальная система · Несанкционированный доступ запрещён</div>
+    </div>
+  </form>
+  <div class="login-version">Версия 2.1.0 · © 2026 МО РК</div>
+</div>
+{% endblock %}

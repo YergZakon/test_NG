@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Мои тесты · ВС РК{% endblock %}
+{% block body %}
+<div class="app">
+  {% include "partials/sidebar.html" %}
+  <main class="main">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Мои тесты / Тесттерім</div>
+        <div class="page-sub">{{ today }} · Психологическая служба ВС РК</div>
+      </div>
+    </div>
+
+    {% if assignment %}
+    <div class="card card--accent-orange">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap">
+        <div style="flex:1;min-width:240px">
+          <span class="badge badge--orange" style="margin-bottom:12px">Назначен · Тағайындалды</span>
+          <div class="card-title">{{ assignment.title }}</div>
+          <div class="subtle" style="margin-bottom:16px">{{ assignment.title_kz }}</div>
+          <div style="display:flex;gap:24px;flex-wrap:wrap">
+            <div><div class="label" style="margin-bottom:3px">Назначил</div><div style="font-size:13px">{{ assignment.assigned_by }}</div></div>
+            <div><div class="label" style="margin-bottom:3px">Срок</div><div style="font-size:13px;color:var(--red);font-weight:700">{{ assignment.due }}</div></div>
+            <div><div class="label" style="margin-bottom:3px">Длительность</div><div style="font-size:13px">~40–60 мин.</div></div>
+          </div>
+        </div>
+        <a class="btn btn--primary" href="/test" style="white-space:nowrap;flex-shrink:0">НАЧАТЬ →</a>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-box__title">Инструкция · Нұсқаулық</div>
+      <div class="info-box__text">Отвечайте честно, не задумываясь долго. Нет правильных или неправильных ответов. Результаты строго конфиденциальны.</div>
+    </div>
+    {% else %}
+    <div class="card" style="text-align:center;padding:40px">
+      <div class="subtle" style="font-style:italic">Нет назначенных обследований · Тағайындалған тексерулер жоқ</div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+      <div class="card__label">История · Тарих</div>
+      {% if history %}
+        {% for h in history %}
+        <div class="recent-item">
+          <div class="recent-item__av badge--{{ h.color }}">{{ h.npu if h.npu is not none else '—' }}</div>
+          <div style="flex:1;min-width:0">
+            <div class="recent-item__name">{{ h.title }}</div>
+            <div class="recent-item__sub">{{ h.date }} · {{ h.verdict }}</div>
+          </div>
+          <a class="link" href="/results/{{ h.id }}">Просмотр</a>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="text-align:center;padding:16px 0;color:var(--muted);font-size:13px;font-style:italic">
+          Нет завершённых обследований · Аяқталған тексерулер жоқ
+        </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

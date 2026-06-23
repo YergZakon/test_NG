@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Военная анкета · ВС РК{% endblock %}
+{% block body %}
+<div style="background:var(--bg);min-height:100vh;animation:fadein 0.2s ease">
+  <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px">
+    <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text)">Психологическое обследование</div>
+    <div class="subtle">{{ user.full_name }} · {{ user.rank }}</div>
+    <a class="btn--danger-text" href="/cabinet" style="font-family:var(--mono);font-size:12px">Прервать</a>
+  </div>
+
+  <div class="stepper">
+    {% for s in steps %}
+    <div class="step step--{{ s.status }}">
+      <div class="step__dot step__dot--{{ s.status }}">{{ s.num }}</div>
+      <div>
+        <div class="step__status">{% if s.status=='current' %}Текущий{% else %}Ожидание{% endif %}</div>
+        <div class="step__name">{{ s.label }}</div>
+      </div>
+      {% if not loop.last %}<div class="step__line"></div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  <div class="progress-track"><div class="progress-track__fill" style="width:10%"></div></div>
+
+  <form method="post" action="/test/anketa" style="max-width:720px;margin:32px auto;padding:0 28px">
+    <div class="test-scale">Военная анкета · Әскери сауалнама</div>
+    <div class="test-counter" style="margin-bottom:24px">Заполните данные. Отмеченные поля обязательны.</div>
+
+    {% for section in sections %}
+    <div class="card">
+      <div class="card__label">{{ section.title }}</div>
+      {% for f in section.fields %}
+      <div class="field">
+        <label class="field__label" for="{{ f.id }}">{{ f.label }}</label>
+        {% if f.type == 'textarea' %}
+          <textarea class="input" id="{{ f.id }}" name="{{ f.id }}">{{ values.get(f.id, '') }}</textarea>
+        {% elif f.type in ('select','radio') %}
+          <select class="input" id="{{ f.id }}" name="{{ f.id }}">
+            <option value="">— не выбрано —</option>
+            {% for o in f.options %}<option value="{{ o }}" {{ 'selected' if values.get(f.id)==o else '' }}>{{ o }}</option>{% endfor %}
+          </select>
+        {% elif f.type == 'multiselect' %}
+          <select class="input" id="{{ f.id }}" name="{{ f.id }}" multiple size="{{ [f.options|length, 5]|min }}">
+            {% for o in f.options %}<option value="{{ o }}">{{ o }}</option>{% endfor %}
+          </select>
+        {% elif f.type == 'date' %}
+          <input class="input" type="date" id="{{ f.id }}" name="{{ f.id }}" value="{{ values.get(f.id, '') }}">
+        {% elif f.type in ('number','slider') %}
+          <input class="input" type="number" id="{{ f.id }}" name="{{ f.id }}" value="{{ values.get(f.id, '') }}">
+        {% else %}
+          <input class="input" type="text" id="{{ f.id }}" name="{{ f.id }}" value="{{ values.get(f.id, '') }}">
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+
+    <div class="test-nav">
+      <a class="btn btn--ghost" href="/cabinet">← Отмена</a>
+      <button class="btn btn--primary" type="submit">К тестированию →</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

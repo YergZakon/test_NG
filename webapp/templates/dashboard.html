@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Дашборд · ВС РК{% endblock %}
+{% block body %}
+<div class="app">
+  {% include "partials/sidebar.html" %}
+  <main class="main">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Дашборд</div>
+        <div class="page-sub">{{ today }} · Психологическая служба ВС РК</div>
+      </div>
+      <a class="btn btn--primary btn--sm" href="/list">+ НАЗНАЧИТЬ ТЕСТ</a>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat__num">{{ stats.today }}</div><div class="stat__label">Сегодня</div></div>
+      <div class="stat"><div class="stat__num">{{ stats.week }}</div><div class="stat__label">За неделю</div></div>
+      <div class="stat stat--red"><div class="stat__num stat__num--red">{{ stats.high }}</div><div class="stat__label">Высокий риск</div></div>
+      <div class="stat stat--green"><div class="stat__num stat__num--green">{{ stats.norma }}</div><div class="stat__label">В норме</div></div>
+    </div>
+
+    <div class="dash-row">
+      <div class="dash-col-main">
+        <div class="card">
+          <div class="card__label" style="margin-bottom:14px">Последние обследования</div>
+          {% if recent %}
+            {% for r in recent %}
+            <div class="recent-item">
+              <div class="recent-item__av badge--{{ r.color }}">{{ r.initials }}</div>
+              <div style="flex:1;min-width:0">
+                <div class="recent-item__name">{{ r.name }}</div>
+                <div class="recent-item__sub">{{ r.sub }}</div>
+              </div>
+              <div style="flex-shrink:0;text-align:right">
+                <span class="badge badge--{{ r.color }}">{{ r.tag }}</span>
+                <div class="recent-item__time">{{ r.time }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div style="text-align:center;padding:16px 0;color:var(--muted);font-size:13px;font-style:italic">Пока нет обследований</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="dash-col-side">
+        <div class="card">
+          <div class="card__label" style="margin-bottom:14px">Распределение НПУ</div>
+          {% for d in dist %}
+          <div style="margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+              <span style="font-size:11px;color:var(--text-2)">{{ d.label }}</span>
+              <span style="font-size:11px;font-family:var(--mono);font-weight:700;color:var(--{{ 'green' if d.color=='green' else ('orange' if d.color=='orange' else 'red') }})">{{ d.count }}</span>
+            </div>
+            <div class="bar" style="height:6px"><div class="bar__fill bar__fill--{{ d.color }}" style="width:{{ d.pct }}%"></div></div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

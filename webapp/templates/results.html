@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Результаты · ВС РК{% endblock %}
+{% block body %}
+<div class="app">
+  {% include "partials/sidebar.html" %}
+  <main class="main">
+
+    {# ---- Сводка ---- #}
+    <div class="card">
+      <div class="summary">
+        <div>
+          <div class="card__label" style="margin-bottom:8px">Заключение · Қорытынды</div>
+          <div style="font-family:var(--mono);font-size:17px;font-weight:800;color:var(--text);margin-bottom:3px">{{ a.full_name }}</div>
+          <div style="font-size:12px;color:var(--text-2);margin-bottom:12px">{{ a.rank or '—' }} · {{ a.unit or '—' }} · {{ date }}</div>
+          <span class="badge badge--lg badge--{{ verdict_color }}">{{ verdict }}</span>
+        </div>
+        <div class="npu-badge npu-badge--{{ npu_color }}">
+          <div class="npu-badge__num">{{ a.npu }}</div>
+          <div class="npu-badge__cap">НПУ · НПТ</div>
+          <div class="npu-badge__cap" style="font-weight:400">{{ npu_cap }}</div>
+        </div>
+      </div>
+    </div>
+
+    {# ---- Шкалы ---- #}
+    <div class="card">
+      <div class="card__label" style="margin-bottom:16px">Психологические шкалы · Психологиялық шкалалар</div>
+      {% for s in scales %}
+      <div class="scale-row">
+        <div class="scale-row__head">
+          <span class="scale-row__name">{{ s.name }}</span>
+          <div class="scale-row__meta">
+            <span class="scale-row__val">{{ s.score }} / {{ s.max }}</span>
+            <span class="badge badge--{{ s.badge_color }}">{{ s.badge }}</span>
+          </div>
+        </div>
+        <div class="bar"><div class="bar__fill bar__fill--{{ s.fill }}" style="width:{{ s.pct }}%"></div></div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {# ---- Рекомендации ---- #}
+    {% if a.final_messages %}
+    <div class="info-box">
+      <div class="info-box__title">Рекомендации · Ұсынымдар</div>
+      {% for m in a.final_messages %}<div class="info-box__text">{{ m }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <a class="btn btn--primary btn--sm" href="/results/{{ a.id }}/report.txt">СКАЧАТЬ ОТЧЁТ</a>
+      {% if user.role == 'soldier' %}<a class="btn btn--ghost btn--sm" href="/cabinet">В КАБИНЕТ</a>
+      {% else %}<a class="btn btn--ghost btn--sm" href="/list">К СПИСКУ</a>{% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

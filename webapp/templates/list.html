@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Список · ВС РК{% endblock %}
+{% block body %}
+<div class="app">
+  {% include "partials/sidebar.html" %}
+  <main class="main">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Список тестируемых · Тізім</div>
+        <div class="page-sub">{{ total }} записей</div>
+      </div>
+      <a class="btn btn--primary btn--sm" href="#">+ НАЗНАЧИТЬ</a>
+    </div>
+
+    <form class="toolbar" method="get" action="/list">
+      <input class="input" type="text" name="q" value="{{ q }}" placeholder="Поиск по ФИО, звание, подразделение...">
+      <button class="btn btn--ghost btn--sm" type="submit">Найти</button>
+    </form>
+
+    <div class="table">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:32px">#</th><th>ФИО</th><th style="width:90px">Звание</th>
+            <th style="width:110px">Подразд.</th><th style="width:64px">Дата</th>
+            <th style="width:48px">НПУ</th><th style="width:84px">Риск</th><th style="width:74px">Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td>{{ r.n }}</td>
+            <td class="name">{{ r.name }}</td>
+            <td>{{ r.rank }}</td>
+            <td>{{ r.unit }}</td>
+            <td>{{ r.date }}</td>
+            <td class="npu" style="color:var(--{{ r.npu_color if r.npu_color != 'navy' else 'navy' }})">{{ r.npu }}</td>
+            <td><span class="badge badge--{{ r.badge_color }}">{{ r.badge }}</span></td>
+            <td><a class="link" href="/results/{{ r.id }}">Просмотр</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Ничего не найдено</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pager">
+      <div style="font-size:11px;color:var(--muted)">Показаны {{ total }} записей</div>
+      <div class="pager__pages">
+        <div class="pager__page pager__page--active">1</div>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

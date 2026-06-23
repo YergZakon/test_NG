@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Обследование · ВС РК{% endblock %}
+{% block body %}
+<div style="background:var(--bg);min-height:100vh;animation:fadein 0.2s ease">
+  <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px">
+    <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text)">Психологическое обследование</div>
+    <div class="subtle">{{ user.full_name }} · {{ user.rank }}</div>
+    <a class="btn--danger-text" href="/cabinet" style="font-family:var(--mono);font-size:12px">Прервать</a>
+  </div>
+
+  {# ---- Степпер ---- #}
+  <div class="stepper">
+    {% for s in steps %}
+    <div class="step step--{{ s.status }}">
+      <div class="step__dot step__dot--{{ s.status }}">
+        {% if s.status == 'done' %}<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="1,6 5,10 11,2" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>{% else %}{{ s.num }}{% endif %}
+      </div>
+      <div>
+        <div class="step__status">{% if s.status=='done' %}Готово{% elif s.status=='current' %}Текущий{% else %}Ожидание{% endif %}</div>
+        <div class="step__name">{{ s.label }}</div>
+      </div>
+      {% if not loop.last %}<div class="step__line"></div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  <div class="progress-track"><div class="progress-track__fill" style="width:{{ progress }}%"></div></div>
+
+  {# ---- Вопрос ---- #}
+  <form class="test-wrap" method="post" action="{{ action }}">
+    {% if scale_label %}<div class="test-scale">{{ scale_label }}</div>{% endif %}
+    <div class="test-counter">Вопрос {{ q_num }} из {{ q_total }} · Сұрақ {{ q_num }}/{{ q_total }}</div>
+    <div class="test-question">{{ question_text }}</div>
+    <div class="options">
+      {% for opt in options %}
+      <label class="option">
+        <input type="radio" name="answer" value="{{ opt.value }}" {{ 'checked' if opt.value == selected else '' }} required>
+        <span class="option__radio"><span class="option__radio-dot"></span></span>
+        <span class="option__text">{{ opt.text }}</span>
+      </label>
+      {% endfor %}
+    </div>
+    <div class="test-nav">
+      {% if can_back %}<button class="btn btn--ghost" name="dir" value="back" type="submit" formnovalidate>← Назад</button>{% else %}<span></span>{% endif %}
+      <div class="test-nav__counter">{{ q_num }} / {{ q_total }}</div>
+      <button class="btn btn--primary" name="dir" value="next" type="submit">{{ 'Завершить →' if is_last else 'Далее →' }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

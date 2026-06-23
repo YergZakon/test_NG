@@ -1,0 +1,49 @@
+{# Сайдбар. Ожидает: user (full_name, initials, rank, unit, role), active (ключ активного пункта) #}
+<aside class="sidebar">
+  <div class="sidebar__brand">
+    <svg width="24" height="28" viewBox="0 0 24 28" fill="none">
+      <path d="M12 1L23 6V16C23 22 12 27 12 27C12 27 1 22 1 16V6L12 1Z" fill="rgba(201,162,39,0.15)" stroke="#C9A227" stroke-width="1"></path>
+      <circle cx="12" cy="15" r="4" fill="none" stroke="#C9A227" stroke-width="1"></circle>
+      <circle cx="12" cy="15" r="1.5" fill="#C9A227"></circle>
+    </svg>
+    <div>
+      <div class="sidebar__brand-title">ВС РК</div>
+      <div class="sidebar__brand-sub">Псих. служба</div>
+    </div>
+  </div>
+
+  <div class="sidebar__user">
+    <div class="avatar {{ 'avatar--olive' if user.role == 'psychologist' else 'avatar--gold' }}">{{ user.initials }}</div>
+    <div class="sidebar__user-name">{{ user.full_name }}</div>
+    <div class="sidebar__user-rank">{{ user.rank }}</div>
+    {% if user.unit %}<div class="sidebar__user-unit">{{ user.unit }}</div>{% endif %}
+  </div>
+
+  <nav class="sidebar__nav">
+    {% if user.role == 'psychologist' %}
+      {% set items = [
+        ('dashboard', 'Дашборд', 'Бақылау', '/dashboard'),
+        ('list', 'Список', 'Тізім', '/list'),
+        ('stats', 'Статистика', 'Статистика', '#'),
+        ('settings', 'Настройки', 'Баптаулар', '#'),
+      ] %}
+    {% else %}
+      {% set items = [
+        ('cabinet', 'Мои тесты', 'Тесттерім', '/cabinet'),
+        ('results', 'Результаты', 'Нәтижелер', '/results'),
+        ('help', 'Справка', 'Анықтама', '#'),
+      ] %}
+    {% endif %}
+    {% for key, title, sub, href in items %}
+      <a class="nav-item {{ 'nav-item--active' if key == active else '' }}" href="{{ href }}">
+        <div class="nav-item__title">{{ title }}</div>
+        <div class="nav-item__sub">{{ sub }}</div>
+      </a>
+    {% endfor %}
+  </nav>
+
+  <div class="sidebar__footer">
+    <a class="nav-item" href="/logout" style="padding:0;margin-bottom:10px"><span class="nav-item__title">Выйти · Шығу</span></a>
+    <div class="sidebar__footer-text">Конфиденциально<br>Жасырын ақпарат</div>
+  </div>
+</aside>
