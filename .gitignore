@@ -128,8 +128,11 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Streamlit
-.streamlit/
+# Streamlit (config.toml нужен для деплоя; прячем только секреты)
+.streamlit/secrets.toml
+
+# Локальная база (SQLite) для разработки
+assessments.db
 
 # IDE
 .vscode/

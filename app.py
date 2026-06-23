@@ -829,18 +829,9 @@ def prepare_final_recommendations():
     # Проверка риска экстремизма
     questionnaire = st.session_state.questionnaire_responses
     has_religious_teacher = bool(questionnaire.get('religion_teachers', '').strip())
-    # Debug statements for religious and social factors
-    
     frequent_attendance = questionnaire.get('religious_attendance') in ['Несколько раз в неделю', 'Каждый день']
     no_social_events = questionnaire.get('social_events') == 'Нет'
 
-    st.write("Debug: Religious teacher present:", has_religious_teacher)
-    st.write("Debug: Religious attendance:", questionnaire.get('religious_attendance'))
-    st.write("Debug: Social events participation:", questionnaire.get('social_events'))
-    print("Debug: Religious teacher present:", has_religious_teacher)
-    print("Debug: Religious attendance:", questionnaire.get('religious_attendance'))
-    print("Debug: Social events participation:", questionnaire.get('social_events'))
-    
     if has_religious_teacher and frequent_attendance and no_social_events:
         has_high_risk = True
         recommendations.append("⚠️ Выявлен риск экстремизма")
@@ -1075,7 +1066,27 @@ def show_results():
     
     # Заголовок с информацией о кандидате
     questionnaire = st.session_state.questionnaire_responses
-    
+
+    # Автосохранение результата в БД (один раз за сессию)
+    if not st.session_state.get('saved_to_db'):
+        try:
+            from db import save_assessment
+            payload = {
+                'session_id': st.session_state.session_id,
+                'questionnaire_responses': st.session_state.questionnaire_responses,
+                'responses': st.session_state.responses,
+                'scale_scores': st.session_state.scale_scores,
+                'risk_levels': st.session_state.risk_levels,
+                'risk_levels_desc': st.session_state.risk_levels_desc,
+                'detailed_results': st.session_state.detailed_results,
+                'military_recommendation': st.session_state.get('military_recommendation'),
+                'final_recommendations': st.session_state.get('final_recommendations'),
+            }
+            st.session_state.saved_assessment_id = save_assessment(payload)
+            st.session_state.saved_to_db = True
+        except Exception as e:
+            st.warning(f"⚠️ Результат не сохранён в базу данных ({e}). Скачайте отчёт вручную ниже.")
+
     st.markdown(f"""
     ## 👤 Информация о кандидате
     
@@ -1554,6 +1565,31 @@ def generate_military_csv():
     return output.getvalue()
 
 # Основная функция приложения
+def show_archive():
+    """Просмотр сохранённых обследований (для администратора)."""
+    st.title("🗄️ Архив обследований")
+    if st.button("⬅️ Назад"):
+        st.session_state.stage = 'start'
+        st.rerun()
+    try:
+        from db import list_assessments
+        rows = list_assessments()
+    except Exception as e:
+        st.error(f"Не удалось загрузить архив: {e}")
+        return
+    if not rows:
+        st.info("Архив пуст — пока нет сохранённых обследований.")
+        return
+    table = [{
+        "ID": r.id,
+        "Дата": r.created_at.strftime("%Y-%m-%d %H:%M") if r.created_at else "",
+        "ФИО": r.full_name or "—",
+        "Заключение": r.military_recommendation or "—",
+    } for r in rows]
+    st.metric("Всего обследований", len(rows))
+    st.dataframe(table, use_container_width=True)
+
+
 def main():
     # Инициализация состояния сессии
     initialize_session()
@@ -1607,7 +1643,19 @@ def main():
         if st.session_state.stage != 'start' and st.button("🏠 В начало"):
             st.session_state.stage = 'start'
             st.rerun()
-        
+
+        # Архив обследований — виден только если задан ADMIN_PASSWORD
+        if os.environ.get("ADMIN_PASSWORD"):
+            with st.expander("🗄️ Архив обследований"):
+                admin_pwd = st.text_input("Пароль администратора", type="password", key="admin_pwd")
+                if admin_pwd:
+                    if admin_pwd == os.environ.get("ADMIN_PASSWORD"):
+                        if st.button("Открыть архив"):
+                            st.session_state.stage = 'archive'
+                            st.rerun()
+                    else:
+                        st.error("Неверный пароль")
+
         # Информация о системе
         with st.expander("ℹ️ О системе"):
             st.markdown("""
@@ -1635,6 +1683,8 @@ def main():
         show_detailed_assessment()
     elif st.session_state.stage == 'results':
         show_results()
+    elif st.session_state.stage == 'archive':
+        show_archive()
     else:
         st.error("❌ Неизвестный этап обследования. Пожалуйста, начните заново.")
         if st.button("🔄 Начать заново"):
