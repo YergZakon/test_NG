@@ -829,18 +829,9 @@ def prepare_final_recommendations():
     # Проверка риска экстремизма
     questionnaire = st.session_state.questionnaire_responses
     has_religious_teacher = bool(questionnaire.get('religion_teachers', '').strip())
-    # Debug statements for religious and social factors
-    
     frequent_attendance = questionnaire.get('religious_attendance') in ['Несколько раз в неделю', 'Каждый день']
     no_social_events = questionnaire.get('social_events') == 'Нет'
 
-    st.write("Debug: Religious teacher present:", has_religious_teacher)
-    st.write("Debug: Religious attendance:", questionnaire.get('religious_attendance'))
-    st.write("Debug: Social events participation:", questionnaire.get('social_events'))
-    print("Debug: Religious teacher present:", has_religious_teacher)
-    print("Debug: Religious attendance:", questionnaire.get('religious_attendance'))
-    print("Debug: Social events participation:", questionnaire.get('social_events'))
-    
     if has_religious_teacher and frequent_attendance and no_social_events:
         has_high_risk = True
         recommendations.append("⚠️ Выявлен риск экстремизма")
