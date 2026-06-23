@@ -1,8 +1,0 @@
-[build]
-builder = "nixpacks"
-
-[deploy]
-# Railway выдаёт порт через $PORT; address/headless заданы в .streamlit/config.toml
-startCommand = "streamlit run app.py --server.port $PORT"
-restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 3
