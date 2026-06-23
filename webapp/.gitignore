@@ -1,5 +1,0 @@
-__pycache__/
-*.pyc
-webapp_portal.db
-*.db
-.env
