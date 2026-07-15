@@ -9,6 +9,8 @@ import os
 import base64
 import tempfile
 
+import prognoz2  # отдельный пайплайн «Прогноз-2» (не связан с основным скринингом)
+
 # Попытка импорта OpenAI для аудио (только для локального запуска)
 try:
     import openai
@@ -356,7 +358,11 @@ def initialize_session():
         'tts_language': 'ru',
         'last_question_id': None,
         'questionnaire_completed': False,
-        'risk_levels_desc': {}
+        'risk_levels_desc': {},
+        # Состояние отдельного пайплайна «Прогноз-2» (изолировано от основного потока)
+        'p2_responses': {},
+        'p2_current_index': 0,
+        'p2_result': None
     }
     
     for key, value in defaults.items():
@@ -392,19 +398,30 @@ def show_start_screen():
     - Военная готовность
     
     ### 🧠 **Этап 2: Психологическое тестирование**
-    🎯 **Шкала агрессии** (Басса-Перри)  
-    🤝 **Шкала изоляции/депривации** (Д. Рассел)  
-    💊 **Шкала соматической депрессии** (Бека)  
-    😰 **Шкала тревожности и депрессии** (NUDS)  
-    🧘 **Шкала нервно-психической устойчивости**  
+    🎯 **Шкала агрессии** (Басса-Перри)
+    🤝 **Шкала изоляции/депривации** (Д. Рассел)
+    💊 **Шкала соматической депрессии** (Бека)
+    😰 **Шкала тревожности и депрессии** (NUDS)
+    🧘 **Шкала нервно-психической устойчивости**
     🪖 **Шкала военной адаптации** (специализированная)
     """)
-    
-    # Кнопка начала
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
+
+    st.markdown("---")
+    st.markdown("### Выберите режим")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("**🪖 Основное обследование**")
+        st.caption("Военная анкета + адаптивный психологический скрининг")
         if st.button("🚀 Начать обследование", use_container_width=True, type="primary"):
             st.session_state.stage = 'questionnaire'
+            st.rerun()
+    with col2:
+        st.markdown("**📋 Тест «Прогноз-2»**")
+        st.caption("Отдельный опросник нервно-психической устойчивости (86 вопросов)")
+        if st.button("📋 Пройти тест «Прогноз-2»", use_container_width=True):
+            prognoz2.prepare_prognoz2()
+            st.session_state.stage = 'p2_test'
             st.rerun()
 
 def show_questionnaire():
@@ -1552,42 +1569,56 @@ def main():
     # Боковая панель с информацией о прогрессе
     with st.sidebar:
         st.header("📋 Прогресс обследования")
-        
-        # Индикаторы этапов
-        stages = [
-            ("📝 Анкета", st.session_state.questionnaire_completed),
-            ("🧠 Скрининг", st.session_state.stage in ['medium_risk_assessment', 'high_risk_assessment', 'results']),
-            ("🎯 Углубленная оценка", st.session_state.stage == 'results' and st.session_state.detailed_results),
-            ("📊 Результаты", st.session_state.stage == 'results')
-        ]
-        
-        for stage_name, completed in stages:
-            if completed:
-                st.success(f"✅ {stage_name}")
+
+        if st.session_state.stage in ['p2_test', 'p2_results']:
+            # Отдельный пайплайн «Прогноз-2»
+            st.info("Режим: тест «Прогноз-2»")
+            total = len(prognoz2.PROGNOZ2_QUESTIONS)
+            if st.session_state.stage == 'p2_test':
+                done = st.session_state.p2_current_index
+                st.progress(done / total)
+                st.metric("Прогресс", f"{done + 1}/{total}")
             else:
-                st.info(f"⏳ {stage_name}")
-        
-        st.markdown("---")
-        
-        # Информация о текущем этапе
-        if st.session_state.stage == 'questionnaire':
-            st.info("Заполняется военная анкета")
-            if st.session_state.questionnaire_responses:
-                filled_questions = len([q for q in st.session_state.questionnaire_responses.values() if q])
-                st.metric("Ответов дано", filled_questions)
-        
-        elif st.session_state.stage in ['screening', 'medium_risk_assessment', 'high_risk_assessment']:
-            st.info("Проходит психологическое тестирование")
-            if st.session_state.questions_order:
-                progress = (st.session_state.current_question_index + 1) / len(st.session_state.questions_order)
-                st.progress(progress)
-                st.metric("Прогресс", f"{st.session_state.current_question_index + 1}/{len(st.session_state.questions_order)}")
-        
-        elif st.session_state.stage == 'results':
-            st.success("Обследование завершено")
-            if st.session_state.questionnaire_responses.get('full_name'):
-                st.write(f"**Кандидат**: {st.session_state.questionnaire_responses['full_name']}")
-        
+                st.success("✅ Тест завершён")
+                result = st.session_state.get('p2_result')
+                if result:
+                    st.metric("Стэн НПУ", f"{result['sten']}/10")
+        else:
+            # Индикаторы этапов основного потока
+            stages = [
+                ("📝 Анкета", st.session_state.questionnaire_completed),
+                ("🧠 Скрининг", st.session_state.stage in ['medium_risk_assessment', 'high_risk_assessment', 'results']),
+                ("🎯 Углубленная оценка", st.session_state.stage == 'results' and st.session_state.detailed_results),
+                ("📊 Результаты", st.session_state.stage == 'results')
+            ]
+
+            for stage_name, completed in stages:
+                if completed:
+                    st.success(f"✅ {stage_name}")
+                else:
+                    st.info(f"⏳ {stage_name}")
+
+            st.markdown("---")
+
+            # Информация о текущем этапе
+            if st.session_state.stage == 'questionnaire':
+                st.info("Заполняется военная анкета")
+                if st.session_state.questionnaire_responses:
+                    filled_questions = len([q for q in st.session_state.questionnaire_responses.values() if q])
+                    st.metric("Ответов дано", filled_questions)
+
+            elif st.session_state.stage in ['screening', 'medium_risk_assessment', 'high_risk_assessment']:
+                st.info("Проходит психологическое тестирование")
+                if st.session_state.questions_order:
+                    progress = (st.session_state.current_question_index + 1) / len(st.session_state.questions_order)
+                    st.progress(progress)
+                    st.metric("Прогресс", f"{st.session_state.current_question_index + 1}/{len(st.session_state.questions_order)}")
+
+            elif st.session_state.stage == 'results':
+                st.success("Обследование завершено")
+                if st.session_state.questionnaire_responses.get('full_name'):
+                    st.write(f"**Кандидат**: {st.session_state.questionnaire_responses['full_name']}")
+
         st.markdown("---")
         
         # Кнопки управления
@@ -1626,6 +1657,10 @@ def main():
         show_detailed_assessment()
     elif st.session_state.stage == 'results':
         show_results()
+    elif st.session_state.stage == 'p2_test':
+        prognoz2.show_prognoz2_test()
+    elif st.session_state.stage == 'p2_results':
+        prognoz2.show_prognoz2_results()
     else:
         st.error("❌ Неизвестный этап обследования. Пожалуйста, начните заново.")
         if st.button("🔄 Начать заново"):
